@@ -39,7 +39,7 @@ chart.draw(data, options);
 
 function getRating()
 {
-    handles = ['kuldeepfouzdar', 'venomous', 'chandan111', 'tourist']
+    handles = ['kuldeepfouzdar', 'venomous', 'belowthebelt']
     for (var i=0; i<handles.length; i++)
     {
         $.ajax({
