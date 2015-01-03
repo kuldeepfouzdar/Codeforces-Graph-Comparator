@@ -1,7 +1,9 @@
 var data = {};
 var dataList = [];
 var completed=0;
-
+var handles = ['kuldeepfouzdar', 'venomous', 'belowthebelt'];
+var handles_copy = handles.slice(0);
+var handle_count = handles.length;
 google.load('visualization', '1', {packages: ['corechart']});
 google.setOnLoadCallback(drawChart);
 
@@ -39,65 +41,67 @@ chart.draw(data, options);
 
 function getRating()
 {
-    handles = ['kuldeepfouzdar', 'venomous', 'belowthebelt']
-    for (var i=0; i<handles.length; i++)
+    console.log(completed);
+    if (handles_copy.length>0)
     {
+        var handle = handles_copy.pop();
         $.ajax({
             url: 'http://codeforces.com/api/user.rating',
             dataType: 'JSONP',
             data : {
                 jsonp:"callback",
-                handle:handles[i]
+                handle:handle
             },
-            handle: handles[i],
+            handle: handle,
             jsonpCallback: 'callback',
             type: 'GET',
             success: function (data1) {
-
                 var current_handle = this.handle;
-                completed++;
                 if (data1.status == 'OK'){
+                    completed++;
                     member = data1.result;
-                    for (var j=0; j<member.length; j++)
-                    {
+                    console.log(member);
+                    for (var j=0; j<member.length; j++){
                         //console.log(member[j].ratingUpdateTimeSeconds);
-                        if (member[j].ratingUpdateTimeSeconds in data)
-                        {
+                        if (member[j].ratingUpdateTimeSeconds in data){
                             temp = data[member[j].ratingUpdateTimeSeconds];
                             temp[current_handle] = member[j].newRating;
                             data[member[j].ratingUpdateTimeSeconds] = temp;
                         }
-                        else
-                        {
+                        else{
                             temp = {};
                             temp[current_handle] = member[j].newRating;
                             data[member[j].ratingUpdateTimeSeconds] = temp;
                         }
                     }
                 }
-                if (completed==handles.length)
+                else{
+                    handles_copy.push(this.handle);
+                }
+
+                if (completed==handle_count)
                 {
-                    process_data(handles);
+                    process_data();
                     console.log(dataList);
-                }    
+                }
+                else
+                    getRating();
             },
             error: function (xhr, ajaxOptions, thrownError) {
-                console.log("error for : " + this.handle);
-                    completed++;
-                if (completed==handles.length)
-                {
-                    console.log(dataList);
-                }  
+                console.log("error for : " + this.handle)
+                handles_copy.push(this.handle);
+                getRating();
             }
 
         });
-}
+    }
 }
 
 
-function process_data(handles)
+function process_data()
 {
     var current_rating = [];
+    console.log(handles);
     for (var i=0; i<handles.length; i++){
         current_rating.push(1500);
     }
