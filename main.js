@@ -34,8 +34,7 @@ function drawChart() {
 }
 $(document).ready(function(){
     $("#submit").click(function(){
-        var text = document.getElementsByName('handle')[0].value;
-
+        var text = document.getElementsByName('handle')[0].value.trim();
         var handle_list = text.split(',');
         data = {};
         dataList = [];
@@ -54,12 +53,18 @@ $(document).ready(function(){
             alert("please enter comma separaed handles to get graph");
             return;
         }
-        document.getElementsByName('handle')[0].value = text + ', ';
+        if (text.charAt(text.length-1) != ',')
+            document.getElementsByName('handle')[0].value = text + ', ';
         handles_copy = handles.slice(0);
         handle_count = handles.length;
         
         getRating();
     });
+    $("#handle").keyup(function(event){
+    if(event.keyCode == 13){
+        $("#submit").click();
+    }
+});
 });
 
 
