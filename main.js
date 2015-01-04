@@ -1,47 +1,71 @@
 var data = {};
 var dataList = [];
 var completed=0;
-var handles = ['kuldeepfouzdar', 'venomous', 'belowthebelt'];
+var handles = ['handle'];
 var handles_copy = handles.slice(0);
 var handle_count = handles.length;
 google.load('visualization', '1', {packages: ['corechart']});
 google.setOnLoadCallback(drawChart);
-
 function drawChart() {
+    var data = new google.visualization.DataTable();
+    console.log(data);
+    data.addColumn('number', 'X');
+    for(var i = 0; i<handles.length ; i++){
+        data.addColumn('number', handles[i]);
+    }
 
-  var data = new google.visualization.DataTable();
+    data.addRows(dataList);
 
-  data.addColumn('number', 'X');
-  for(var i = 0; i<handles.length ; i++){
-    data.addColumn('number', handles[i]);
+    var options = {
+        width: 1000,
+        height: 563,
+        hAxis: {
+          title: 'Time'
+      },
+      vAxis: {
+          ticks: [1200,1350,1500,1700,1900], 
+          title: 'Rating'
+      }
+    };
+
+    var chart = new google.visualization.LineChart(document.getElementById('ex2'));
+
+    chart.draw(data, options);
 }
+$(document).ready(function(){
+    $("#submit").click(function(){
+        var text = document.getElementsByName('handle')[0].value;
 
-data.addRows(dataList);
+        var handle_list = text.split(',');
+        data = {};
+        dataList = [];
+        completed = 0;
+        handles = [];
+        for (var i=0; i<handle_list.length; i++){
+            var temp = handle_list[i].trim();
+            if (temp.length>=3)
+                handles.push(temp);
+        }
+        if (handles.length>3){
+            alert("More than 3 handles not allowed!");
+            return false;
+        }
+        else if (handles.length==0){
+            alert("please enter comma separaed handles to get graph");
+            return;
+        }
+        document.getElementsByName('handle')[0].value = text + ', ';
+        handles_copy = handles.slice(0);
+        handle_count = handles.length;
+        
+        getRating();
+    });
+});
 
 
-var options = {
-    width: 1000,
-    height: 563,
-    hAxis: {
-      title: 'Time'
-  },
-  vAxis: {
-      ticks: [1200,1350,1500,1700,1900], 
-      title: 'Rating'
-  },
-  series: {
-      1: {curveType: 'function'}
-  }
-};
-
-var chart = new google.visualization.LineChart(document.getElementById('ex2'));
-
-chart.draw(data, options);
-}
 
 function getRating()
 {
-    console.log(completed);
     if (handles_copy.length>0)
     {
         var handle = handles_copy.pop();
@@ -62,7 +86,6 @@ function getRating()
                     member = data1.result;
                     console.log(member);
                     for (var j=0; j<member.length; j++){
-                        //console.log(member[j].ratingUpdateTimeSeconds);
                         if (member[j].ratingUpdateTimeSeconds in data){
                             temp = data[member[j].ratingUpdateTimeSeconds];
                             temp[current_handle] = member[j].newRating;
@@ -75,13 +98,18 @@ function getRating()
                         }
                     }
                 }
-                else{
+                //retry only if call limit exceeded
+                else if (data1.status == "FAILED" && data1.comment == "Call limit exceeded"){
                     handles_copy.push(this.handle);
+                }
+                else{
+                    completed++;
                 }
 
                 if (completed==handle_count)
                 {
                     process_data();
+                    drawChart();
                     console.log(dataList);
                 }
                 else
@@ -124,5 +152,3 @@ function process_data()
         data[timeStamp] = temp;
     }
 }
-
-getRating();    
